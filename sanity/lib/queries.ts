@@ -1,0 +1,35 @@
+export const siteSettingsQuery = `
+  *[_type == "siteSettings"][0]{
+    brandName,
+    tagline,
+    logo,
+    navigation[]{
+      label,
+      href
+    },
+    primaryCta{
+      label,
+      url,
+      openInNewTab
+    },
+    floatingCta{
+      enabled,
+      label,
+      url,
+      mobileLabel
+    },
+    contact{
+      hotelEmail,
+      guestEmail,
+      whatsapp,
+      instagram,
+      linkedin,
+      youtube
+    },
+    footer{
+      statement,
+      location,
+      copyright
+    }
+  }
+`;
