@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 import Navbar from "./components/Navbar";
@@ -20,9 +21,7 @@ export const metadata: Metadata = {
   applicationName: "Raahii Digital",
 
   authors: [{ name: "Raahii Digital" }],
-
   creator: "Raahii Digital",
-
   publisher: "Raahii Digital",
 
   robots: {
@@ -41,20 +40,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Raahii Digital",
-
     title: "Raahii Digital — Hospitality Growth Partner",
-
     description:
       "We help hospitality brands find their story, connect with the right guests, and grow with meaning.",
-
     locale: "en_IN",
   },
 
   twitter: {
     card: "summary_large_image",
-
     title: "Raahii Digital — Hospitality Growth Partner",
-
     description:
       "Helping hospitality brands get discovered, chosen and remembered.",
   },
@@ -71,28 +65,61 @@ export default async function RootLayout({
 
   try {
     siteSettings = await sanityClient.fetch(
-      siteSettingsQuery,{},
+      siteSettingsQuery,
+      {},
       {
         cache: "no-store",
       }
     );
   } catch (error) {
-    console.error(
-      "Failed to fetch Site Settings from Sanity:",
-      error
-    );
+    console.error("Failed to fetch Site Settings from Sanity:", error);
   }
 
   return (
     <html lang="en">
+      <head>
+        {/* Google Tag Manager */}
+        <Script
+          id="google-tag-manager"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,l,i){
+                w[l]=w[l]||[];
+                w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+                var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),
+                dl=l!='dataLayer'?'&l='+l:'';
+                j.async=true;
+                j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+                f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','GTM-MMD575FG');
+            `,
+          }}
+        />
+      </head>
+
       <body className="min-h-screen antialiased">
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-MMD575FG"
+            height="0"
+            width="0"
+            style={{
+              display: "none",
+              visibility: "hidden",
+            }}
+          />
+        </noscript>
+
         <Navbar settings={siteSettings} />
 
         {children}
 
         <Footer settings={siteSettings} />
 
-        <FloatingCTA settings={siteSettings?.floatingCta} />
+        <FloatingCTA settings={siteSettings?.floatingCTA} />
       </body>
     </html>
   );
