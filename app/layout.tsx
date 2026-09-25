@@ -53,7 +53,7 @@ export const metadata: Metadata = {
       "Helping hospitality brands get discovered, chosen and remembered.",
   },
 
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL("http://www.raahiidigital.com/"),
 };
 
 export default async function RootLayout({

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = "http://localhost:3000";
+const siteUrl = "http://www.raahiidigital.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

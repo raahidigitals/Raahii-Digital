@@ -28,7 +28,7 @@ export default function Hero() {
         <div className="max-w-2xl">
 
           {/* EYEBROW */}
-          <p className="mb-6 text-[15px] uppercase tracking-[0.42em] text-[#000000]/80 sm:text-sm">
+          <p className="mb-6 text-[15px] uppercase tracking-[0.42em] text-[#ffffff]/80 sm:text-sm">
             Your Hospitality Growth Partner
           </p>
 
