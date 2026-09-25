@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "http://www.raahiidigital.com/sitemap.xml",
+    sitemap: "https://www.raahiidigital.com/sitemap.xml",
   };
 }
