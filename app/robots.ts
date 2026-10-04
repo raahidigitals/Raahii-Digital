@@ -1,11 +1,13 @@
 import type { MetadataRoute } from "next";
 
+const siteUrl = "https://www.raahiidigital.com";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://www.raahiidigital.com/sitemap.xml",
+    sitemap: `${siteUrl}/sitemap.xml`,
   };
 }
