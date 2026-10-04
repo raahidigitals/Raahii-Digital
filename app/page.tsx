@@ -1,5 +1,3 @@
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 import Hero from "./components/Hero";
 import Services from "./components/services";
 import Philosophy from "./components/philosophy";
@@ -9,38 +7,63 @@ import Journey from "./components/Journey";
 
 import type { Metadata } from "next";
 
+import { sanityClient } from "@/lib/sanity";
+import { homePageQuery } from "@/sanity/lib/queries";
+
 export const metadata: Metadata = {
   title: "Raahii Digital — Hospitality Growth Partner",
+
   description:
     "Raahii Digital helps hotels, resorts, boutique stays and hospitality brands get discovered, attract the right guests and build memorable brands through marketing, technology and strategy.",
+
   alternates: {
     canonical: "/",
   },
+
   openGraph: {
-    title: "Raahii Digital — Hospitality Growth Partner",
+    title:
+      "Raahii Digital — Hospitality Growth Partner",
+
     description:
       "Helping hospitality brands get discovered, chosen and remembered.",
+
     type: "website",
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  let homePage = null;
+
+  try {
+    homePage = await sanityClient.fetch(
+      homePageQuery,
+      {},
+      {
+        cache: "no-store",
+      }
+    );
+  } catch (error) {
+    console.error(
+      "Failed to fetch Home Page from Sanity:",
+      error
+    );
+  }
+
   return (
     <main className="m-0 w-full overflow-x-hidden p-0">
-      
-      <Hero />
 
-      <Philosophy />
+      <Hero hero={homePage?.hero} />
 
-      <Journey />
+      <Philosophy philosophy={homePage?.philosophy} />
 
-      <Services />
+      <Journey journey={homePage?.journey} />
 
-      <Portfolio />
+      <Services services={homePage?.services} />
 
-      <CTA />
+      <Portfolio portfolio={homePage?.portfolio} />
 
-  
+      <CTA cta={homePage?.cta} />
+
     </main>
   );
 }

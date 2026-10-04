@@ -397,33 +397,123 @@ export const aboutPageQuery = `
     }
   }
 `;
-export const servicesPageQuery = `
-  *[_type == "servicesPage"][0]{
+export const experiencePageQuery = `
+  *[_type == "experiencePage"][0]{
 
     hero{
       backgroundImage,
       eyebrow,
       headingLineOne,
       headingLineTwo,
-      headingLineThree,
-      headingLineFour,
+      headingHighlight,
+      taglineLineOne,
+      taglineLineTwo,
       description,
-      sideMessage
+
+      primaryButton{
+        label,
+        url,
+        openInNewTab
+      },
+
+      secondaryButton{
+        label,
+        url,
+        openInNewTab
+      },
+
+      sideLabels
     },
 
-    whatWeDo{
+    packagesSection{
+      eyebrow,
+      headingLineOne,
+      headingHighlight,
+      description
+    },
+
+    packages[]{
+      number,
+      icon,
+      title,
+      subtitle,
+      points,
+      price,
+      cta,
+      ctaUrl,
+      image,
+      featured
+    },
+
+    interestsSection{
+      eyebrow,
+      headingLineOne,
+      headingHighlight,
+      description
+    },
+
+    interests[]{
+      title,
+      places,
+      image,
+      icon,
+      url
+    },
+
+    moodSection{
       eyebrow,
       headingLineOne,
       headingLineTwo,
       description
     },
 
-    services[]{
-      number,
+    moods[]{
       title,
       description,
       icon,
-      link
+      image,
+      url
+    },
+
+    promise{
+      backgroundImage,
+      eyebrow,
+      headingLineOne,
+      headingLineTwo,
+      highlight,
+
+      stages[]{
+        number,
+        title,
+        description
+      }
+    },
+
+    hotelIntegration{
+      eyebrow,
+      headingLineOne,
+      headingLineTwo,
+      headingHighlight,
+      description,
+      buttonLabel,
+      buttonUrl,
+      backgroundImage,
+      qrImage,
+      qrHeadingLineOne,
+      qrHeadingLineTwo,
+      qrDescription,
+      qrLocations
+    },
+
+    bookingFlow{
+      eyebrow,
+      heading,
+
+      steps[]{
+        number,
+        lineOne,
+        lineTwo
+      }
     },
 
     finalCta{
@@ -445,7 +535,242 @@ export const servicesPageQuery = `
         openInNewTab
       },
 
-      journeyLabels
+      sideMessage
+    },
+
+    bottomStrip{
+      brand,
+      label,
+      statement,
+      location
+    }
+  }
+`;
+export const contactPageQuery = `
+  *[_type == "contactPage"][0]{
+    hero{
+      backgroundImage,
+      eyebrow,
+      headingLineOne,
+      headingLineTwo,
+      headingHighlight,
+      description,
+      sideMessage
+    },
+
+    journeySelection{
+      eyebrow,
+      headingLineOne,
+      headingHighlight,
+      description,
+
+      hotelCard{
+        image,
+        eyebrow,
+        icon,
+        headingLineOne,
+        headingLineTwo,
+        highlight,
+        description,
+        buttonLabel,
+        bottomLabel
+      },
+
+      guestCard{
+        image,
+        eyebrow,
+        icon,
+        headingLineOne,
+        headingLineTwo,
+        highlight,
+        description,
+        buttonLabel,
+        bottomLabel
+      },
+
+      bottomStatement{
+        lineOne,
+        lineTwo,
+        lineThree
+      }
+    },
+
+    hotelPath{
+      eyebrow,
+      headingLineOne,
+      headingHighlight,
+      description,
+
+      servicesLabel,
+      servicesHint,
+
+      services[]{
+        number,
+        title,
+        description
+      },
+
+      propertyDetailsLabel,
+      goalsLabel,
+      goals[],
+
+      businessLabel,
+      budgetOptions[],
+      marketingSetupOptions[],
+      sourceOptions[],
+
+      messageLabel,
+      messagePlaceholder,
+
+      submitHeading,
+      submitDescription,
+      submitButton,
+
+      success{
+        eyebrow,
+        title,
+        description,
+        buttonText,
+        buttonHref
+      }
+    },
+
+    guestPath{
+      eyebrow,
+      headingLineOne,
+      headingLineTwo,
+      headingLineThree,
+      headingLineFour,
+      description,
+
+      helpLabel,
+
+      helpOptions[]{
+        icon,
+        title,
+        text
+      },
+
+      detailsLabel,
+
+      messageLabel,
+      messagePlaceholder,
+
+      timingLabel,
+      timingOptions[],
+
+      communicationLabel,
+      communicationOptions[],
+
+      submitHeading,
+      submitDescription,
+      submitButton,
+
+      success{
+        eyebrow,
+        title,
+        description,
+        buttonText,
+        buttonHref
+      },
+
+      urgentHelp{
+        eyebrow,
+        heading,
+        description,
+        buttonLabel
+      }
+    },
+
+    directContact{
+      eyebrow,
+
+      cards[]{
+        icon,
+        title,
+        value,
+        url,
+        action
+      }
+    },
+
+    finalCta{
+      backgroundImage,
+      eyebrow,
+      headingLineOne,
+      headingLineTwo,
+      headingHighlight,
+      description,
+
+      primaryButton{
+        label
+      },
+
+      secondaryButton{
+        label,
+        url
+      },
+
+      brand,
+      tagline,
+      bottomMessage
+    }
+  }
+`;
+export const servicesPageQuery = `
+  *[_type == "servicesPage"][0]{
+    hero{
+      backgroundImage,
+      eyebrow,
+      headingLineOne,
+      headingLineTwo,
+      headingHighlight,
+      description,
+      primaryButton{
+        label,
+        url,
+        openInNewTab
+      },
+      secondaryButton{
+        label,
+        url,
+        openInNewTab
+      },
+      sideMessage
+    },
+
+    servicesSection{
+      eyebrow,
+      headingLineOne,
+      headingHighlight,
+      description
+    },
+
+    services[]{
+      number,
+      icon,
+      title,
+      description,
+      image,
+      url
+    },
+
+    finalCta{
+      backgroundImage,
+      eyebrow,
+      headingLineOne,
+      headingHighlight,
+      description,
+      primaryButton{
+        label,
+        url,
+        openInNewTab
+      },
+      secondaryButton{
+        label,
+        url,
+        openInNewTab
+      }
     }
   }
 `;

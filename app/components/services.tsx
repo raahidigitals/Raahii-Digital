@@ -1,12 +1,41 @@
 "use client";
 
-type Service = {
-  title: string;
-  description: string;
-  icon: string;
+import { urlFor } from "@/lib/sanityImage";
+
+type SanityImage = {
+  asset?: {
+    _ref?: string;
+    _type?: string;
+  };
 };
 
-const services: Service[] = [
+type ServiceItem = {
+  title?: string;
+  description?: string;
+  icon?: string;
+};
+
+type ServicesProps = {
+  services?: {
+    eyebrow?: string;
+
+    headingLineOne?: string;
+    headingLineTwo?: string;
+    headingLineThree?: string;
+
+    description?: string;
+
+    heroImage?: SanityImage;
+
+    heroImageTextLineOne?: string;
+    heroImageTextLineTwo?: string;
+    heroImageHighlight?: string;
+
+    items?: ServiceItem[];
+  } | null;
+};
+
+const fallbackServices: ServiceItem[] = [
   {
     title: "Performance Marketing",
     description:
@@ -69,7 +98,51 @@ const services: Service[] = [
   },
 ];
 
-export default function Services() {
+export default function Services({
+  services,
+}: ServicesProps) {
+  const eyebrow =
+    services?.eyebrow || "Our Services";
+
+  const headingLineOne =
+    services?.headingLineOne || "Complete";
+
+  const headingLineTwo =
+    services?.headingLineTwo ||
+    "Hospitality Growth.";
+
+  const headingLineThree =
+    services?.headingLineThree ||
+    "Under One Roof.";
+
+  const description =
+    services?.description ||
+    "Strategy, creativity, technology and hands-on guidance — everything your hospitality brand needs to be discovered, chosen and remembered.";
+
+  const items =
+    services?.items?.length
+      ? services.items
+      : fallbackServices;
+
+  const heroImage = services?.heroImage
+    ? urlFor(services.heroImage)
+        .width(1800)
+        .quality(90)
+        .auto("format")
+        .url()
+    : "/services-hero.jpeg";
+
+  const heroImageTextLineOne =
+    services?.heroImageTextLineOne || "More";
+
+  const heroImageTextLineTwo =
+    services?.heroImageTextLineTwo ||
+    "Than Marketing.";
+
+  const heroImageHighlight =
+    services?.heroImageHighlight ||
+    "A Kinder Tomorrow.";
+
   return (
     <section
       id="work"
@@ -135,7 +208,7 @@ export default function Services() {
                   md:text-[10px]
                 "
               >
-                Our Services
+                {eyebrow}
               </span>
 
               <span className="h-px w-10 bg-[#d8b887]/70" />
@@ -158,13 +231,14 @@ export default function Services() {
                 lg:text-[64px]
               "
             >
-              Complete
+              {headingLineOne}
               <br />
-              Hospitality Growth.
+
+              {headingLineTwo}
               <br />
 
               <span className="text-[#b6815e]">
-                Under One Roof.
+                {headingLineThree}
               </span>
             </h2>
 
@@ -184,9 +258,7 @@ export default function Services() {
                 md:leading-7
               "
             >
-              Strategy, creativity, technology and hands-on guidance —
-              everything your hospitality brand needs to be discovered,
-              chosen and remembered.
+              {description}
             </p>
 
           </div>
@@ -218,7 +290,7 @@ export default function Services() {
                 hover:scale-[1.02]
               "
               style={{
-                backgroundImage: "url('/services-hero.jpeg')",
+                backgroundImage: `url('${heroImage}')`,
               }}
             />
 
@@ -262,9 +334,9 @@ export default function Services() {
                   md:text-xl
                 "
               >
-                More
+                {heroImageTextLineOne}
                 <br />
-                Than Marketing.
+                {heroImageTextLineTwo}
               </p>
 
               <p
@@ -279,7 +351,7 @@ export default function Services() {
                   md:text-xl
                 "
               >
-                A Kinder Tomorrow.
+                {heroImageHighlight}
               </p>
 
               <div className="ml-auto mt-3 h-px w-10 bg-[#d8b887]" />
@@ -308,10 +380,10 @@ export default function Services() {
           "
         >
 
-          {services.map((service, index) => (
+          {items.map((service, index) => (
 
             <article
-              key={service.title}
+              key={`${service.title}-${index}`}
               className="
                 group
                 relative
@@ -451,12 +523,6 @@ export default function Services() {
 
         </div>
 
-
-        {/* =====================================================
-            BOTTOM SECTION
-        ====================================================== */}
-
-       
       </div>
     </section>
   );

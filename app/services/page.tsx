@@ -1,5 +1,11 @@
-import Navbar from "../components/Navbar";
+import Link from "next/link";
 import type { Metadata } from "next";
+
+import Navbar from "../components/Navbar";
+
+import { sanityClient } from "@/lib/sanity";
+import { urlFor } from "@/lib/sanityImage";
+import { servicesPageQuery } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Hospitality Marketing & Growth Services",
@@ -16,21 +22,66 @@ export const metadata: Metadata = {
   },
 };
 
+type SanityImage = unknown;
 
-type Service = {
-  number: string;
-  title: string;
-  description: string;
-  icon: string;
+type ButtonData = {
+  label?: string;
+  url?: string;
+  openInNewTab?: boolean;
 };
 
-const services: Service[] = [
+type Service = {
+  number?: string;
+  title?: string;
+  description?: string;
+  icon?: string;
+  link?: string;
+};
+
+type ServicesPageData = {
+  hero?: {
+    backgroundImage?: SanityImage;
+    eyebrow?: string;
+    headingLineOne?: string;
+    headingLineTwo?: string;
+    headingLineThree?: string;
+    headingLineFour?: string;
+    description?: string;
+    sideMessage?: string;
+  };
+
+  whatWeDo?: {
+    eyebrow?: string;
+    headingLineOne?: string;
+    headingLineTwo?: string;
+    description?: string;
+  };
+
+  services?: Service[];
+
+  finalCta?: {
+    backgroundImage?: SanityImage;
+    eyebrow?: string;
+    headingLineOne?: string;
+    headingHighlight?: string;
+    description?: string;
+
+    primaryButton?: ButtonData;
+
+    secondaryButton?: ButtonData;
+
+    journeyLabels?: string[];
+  };
+};
+
+const fallbackServices: Service[] = [
   {
     number: "01",
     title: "Reels & Content Production",
     description:
       "Scroll-stopping content that showcases your property and brings in the right audience.",
     icon: "◫",
+    link: "#contact",
   },
   {
     number: "02",
@@ -38,6 +89,7 @@ const services: Service[] = [
     description:
       "Cinematic visuals that capture the true essence of your property.",
     icon: "◎",
+    link: "#contact",
   },
   {
     number: "03",
@@ -45,6 +97,7 @@ const services: Service[] = [
     description:
       "Positioning, identity and storytelling that make your hotel stand out.",
     icon: "✎",
+    link: "#contact",
   },
   {
     number: "04",
@@ -52,6 +105,7 @@ const services: Service[] = [
     description:
       "High-performance, SEO-ready websites built for direct bookings.",
     icon: "</>",
+    link: "#contact",
   },
   {
     number: "05",
@@ -59,6 +113,7 @@ const services: Service[] = [
     description:
       "Better visibility, more enquiries and stronger trust across Google Search and Maps.",
     icon: "⌖",
+    link: "#contact",
   },
   {
     number: "06",
@@ -66,6 +121,7 @@ const services: Service[] = [
     description:
       "On-page, off-page and technical SEO to rank higher and attract quality traffic.",
     icon: "▥",
+    link: "#contact",
   },
   {
     number: "07",
@@ -73,6 +129,7 @@ const services: Service[] = [
     description:
       "Performance campaigns that drive direct bookings and measurable ROI.",
     icon: "⌁",
+    link: "#contact",
   },
   {
     number: "08",
@@ -80,6 +137,7 @@ const services: Service[] = [
     description:
       "Better visibility, improved rankings and higher conversions on OTAs.",
     icon: "▣",
+    link: "#contact",
   },
   {
     number: "09",
@@ -87,6 +145,7 @@ const services: Service[] = [
     description:
       "Turn reviews into revenue with proactive reputation building and guest trust.",
     icon: "☆",
+    link: "#contact",
   },
   {
     number: "10",
@@ -94,6 +153,7 @@ const services: Service[] = [
     description:
       "More direct enquiries, WhatsApp integrations and lower OTA dependency.",
     icon: "◌",
+    link: "#contact",
   },
   {
     number: "11",
@@ -101,6 +161,7 @@ const services: Service[] = [
     description:
       "Collaborations that bring authentic visibility and the right guests.",
     icon: "♧",
+    link: "#contact",
   },
   {
     number: "12",
@@ -108,10 +169,134 @@ const services: Service[] = [
     description:
       "A local guide service for your guests — curated itineraries, on-call support and meaningful experiences.",
     icon: "✦",
+    link: "#contact",
   },
 ];
 
-export default function ServicesPage() {
+const fallbackJourneyLabels = [
+  "Get The Guest",
+  "Serve The Guest",
+  "Build The Brand",
+];
+
+function imageUrl(
+  image: SanityImage | undefined,
+  fallback: string
+) {
+  if (!image) {
+    return fallback;
+  }
+
+  try {
+    return urlFor(
+      image as Parameters<typeof urlFor>[0]
+    )
+      .width(1800)
+      .quality(90)
+      .url();
+  } catch {
+    return fallback;
+  }
+}
+
+function isExternalUrl(url?: string) {
+  if (!url) return false;
+
+  return (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("mailto:") ||
+    url.startsWith("tel:")
+  );
+}
+
+function SmartLink({
+  link,
+  className,
+  children,
+}: {
+  link?: ButtonData;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const href = link?.url || "#";
+
+  if (isExternalUrl(href)) {
+    return (
+      <a
+        href={href}
+        target={
+          link?.openInNewTab === false
+            ? undefined
+            : "_blank"
+        }
+        rel={
+          link?.openInNewTab === false
+            ? undefined
+            : "noopener noreferrer"
+        }
+        className={className}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      className={className}
+    >
+      {children}
+    </Link>
+  );
+}
+
+export default async function ServicesPage() {
+  let servicesPage: ServicesPageData | null = null;
+
+  try {
+    servicesPage =
+      await sanityClient.fetch<ServicesPageData>(
+        servicesPageQuery,
+        {},
+        {
+          cache: "no-store",
+        }
+      );
+  } catch (error) {
+    console.error(
+      "Failed to fetch Services Page from Sanity:",
+      error
+    );
+  }
+
+  const hero = servicesPage?.hero;
+  const whatWeDo = servicesPage?.whatWeDo;
+  const finalCta = servicesPage?.finalCta;
+
+  const services =
+    servicesPage?.services &&
+    servicesPage.services.length > 0
+      ? servicesPage.services
+      : fallbackServices;
+
+  const journeyLabels =
+    finalCta?.journeyLabels &&
+    finalCta.journeyLabels.length > 0
+      ? finalCta.journeyLabels
+      : fallbackJourneyLabels;
+
+  const heroImage = imageUrl(
+    hero?.backgroundImage,
+    "/services-page-hero.jpeg"
+  );
+
+  const ctaImage = imageUrl(
+    finalCta?.backgroundImage,
+    "/services-bottom.jpeg"
+  );
+
   return (
     <main className="w-full overflow-x-hidden bg-[#f4f0e7] text-[#151713]">
       <Navbar />
@@ -127,7 +312,7 @@ export default function ServicesPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/services-page-hero.jpeg')",
+            backgroundImage: `url('${heroImage}')`,
           }}
         />
 
@@ -138,7 +323,6 @@ export default function ServicesPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/10" />
 
         <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/60 to-transparent" />
-
 
         {/* HERO CONTENT */}
 
@@ -151,65 +335,59 @@ export default function ServicesPage() {
             <div className="mb-7 flex items-center gap-4">
 
               <span className="text-[9px] uppercase tracking-[0.45em] text-[#d8b887]">
-                Our Services
+                {hero?.eyebrow || "Our Services"}
               </span>
 
               <span className="h-px w-10 bg-[#d8b887]/70" />
 
             </div>
 
-
             {/* HEADING */}
 
             <h1 className="font-serif text-[3.7rem] font-light leading-[0.9] tracking-[-0.045em] sm:text-6xl md:text-7xl lg:text-[6.4rem]">
 
-              More Than
+              {hero?.headingLineOne || "More Than"}
+
               <br />
 
-              Marketing.
+              {hero?.headingLineTwo || "Marketing."}
 
               <br />
 
               <span className="italic text-[#d8b887]">
-                A Growth Partner
+                {hero?.headingLineThree ||
+                  "A Growth Partner"}
               </span>
 
               <br />
 
               <span className="italic text-[#d8b887]">
-                for Your Hotel.
+                {hero?.headingLineFour ||
+                  "for Your Hotel."}
               </span>
 
             </h1>
-
 
             {/* LINE */}
 
             <div className="mt-8 h-px w-12 bg-[#d8b887]" />
 
-
             {/* DESCRIPTION */}
 
             <p className="mt-7 max-w-[560px] font-serif text-sm leading-7 text-[#f7f3e8]/75 sm:text-base md:text-lg md:leading-8">
-              From visibility to bookings, from guest experiences to brand
-              value — we help hospitality businesses grow, sustainably.
+              {hero?.description ||
+                "From visibility to bookings, from guest experiences to brand value — we help hospitality businesses grow, sustainably."}
             </p>
 
           </div>
-
 
           {/* TOP RIGHT MESSAGE */}
 
           <div className="absolute right-6 top-32 hidden max-w-[150px] text-right md:block lg:right-16">
 
-            <p className="font-serif text-xl italic leading-tight text-[#d8b887]/90">
-              Better
-              <br />
-              Stays.
-              <br />
-              Brighter
-              <br />
-              Tomorrows.
+            <p className="whitespace-pre-line font-serif text-xl italic leading-tight text-[#d8b887]/90">
+              {hero?.sideMessage ||
+                "Better\nStays.\nBrighter\nTomorrows."}
             </p>
 
             <div className="ml-auto mt-4 h-px w-10 bg-[#d8b887]" />
@@ -217,9 +395,7 @@ export default function ServicesPage() {
           </div>
 
         </div>
-
       </section>
-
 
       {/* =====================================================
           WHAT WE DO
@@ -238,7 +414,8 @@ export default function ServicesPage() {
               <div className="mb-5 flex items-center justify-center gap-4 md:justify-start">
 
                 <span className="text-[9px] uppercase tracking-[0.45em] text-[#666960]">
-                  What We Do
+                  {whatWeDo?.eyebrow ||
+                    "What We Do"}
                 </span>
 
                 <span className="h-px w-10 bg-[#88877d]" />
@@ -247,39 +424,35 @@ export default function ServicesPage() {
 
               <h2 className="mx-auto max-w-[720px] font-serif text-4xl font-light leading-[0.95] tracking-[-0.035em] sm:text-5xl md:mx-0 md:text-6xl">
 
-                End-to-End Solutions
+                {whatWeDo?.headingLineOne ||
+                  "End-to-End Solutions"}
+
                 <br />
 
                 <span className="text-[#8d6462]">
-                  for Hospitality Growth.
+                  {whatWeDo?.headingLineTwo ||
+                    "for Hospitality Growth."}
                 </span>
 
               </h2>
 
             </div>
 
-
             {/* DESCRIPTION */}
 
             <p className="max-w-[360px] text-sm leading-6 text-[#5f625a] md:ml-auto">
-
-              A complete suite of digital, creative and strategic services
-              designed exclusively for hotels, resorts, villas, boutique
-              stays and homestays.
-
+              {whatWeDo?.description ||
+                "A complete suite of digital, creative and strategic services designed exclusively for hotels, resorts, villas, boutique stays and homestays."}
             </p>
 
           </div>
-
 
           {/* GOLD LINE */}
 
           <div className="mx-auto mt-7 h-px w-10 bg-[#b6815e] md:mx-0" />
 
         </div>
-
       </section>
-
 
       {/* =====================================================
           SERVICES GRID
@@ -291,10 +464,13 @@ export default function ServicesPage() {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
-            {services.map((service) => (
+            {services.map((service, index) => (
 
               <article
-                key={service.number}
+                key={
+                  service.number ||
+                  `${service.title}-${index}`
+                }
                 className="
                   group
                   relative
@@ -345,18 +521,17 @@ export default function ServicesPage() {
                       group-hover:text-[#10251f]
                     "
                   >
-                    {service.icon}
+                    {service.icon || "✦"}
                   </div>
-
 
                   {/* NUMBER */}
 
                   <span className="font-serif text-sm text-[#f7f3e8]/35">
-                    {service.number}
+                    {service.number ||
+                      String(index + 1).padStart(2, "0")}
                   </span>
 
                 </div>
-
 
                 {/* TITLE */}
 
@@ -375,7 +550,6 @@ export default function ServicesPage() {
                   {service.title}
                 </h3>
 
-
                 {/* DESCRIPTION */}
 
                 <p
@@ -390,13 +564,12 @@ export default function ServicesPage() {
                   {service.description}
                 </p>
 
-
                 {/* LEARN MORE */}
 
                 <div className="mt-auto pt-6">
 
-                  <a
-                    href="#contact"
+                  <Link
+                    href={service.link || "#contact"}
                     className="
                       inline-flex
                       items-center
@@ -416,10 +589,9 @@ export default function ServicesPage() {
                       →
                     </span>
 
-                  </a>
+                  </Link>
 
                 </div>
-
 
                 {/* DECORATIVE NUMBER */}
 
@@ -436,7 +608,8 @@ export default function ServicesPage() {
                     text-[#f7f3e8]/[0.025]
                   "
                 >
-                  {service.number}
+                  {service.number ||
+                    String(index + 1).padStart(2, "0")}
                 </span>
 
               </article>
@@ -446,9 +619,7 @@ export default function ServicesPage() {
           </div>
 
         </div>
-
       </section>
-
 
       {/* =====================================================
           FINAL CTA
@@ -464,8 +635,7 @@ export default function ServicesPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url('/services-bottom.jpeg')",
+            backgroundImage: `url('${ctaImage}')`,
           }}
         />
 
@@ -474,7 +644,6 @@ export default function ServicesPage() {
         <div className="absolute inset-0 bg-black/55" />
 
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-black/15" />
-
 
         {/* CONTENT */}
 
@@ -487,52 +656,54 @@ export default function ServicesPage() {
             <div className="mb-6 flex items-center gap-4">
 
               <span className="text-[9px] uppercase tracking-[0.45em] text-[#d8b887]">
-                Let&apos;s Build Together
+                {finalCta?.eyebrow ||
+                  "Let's Build Together"}
               </span>
 
               <span className="h-px w-10 bg-[#d8b887]" />
 
             </div>
 
-
             {/* HEADING */}
 
             <h2 className="font-serif text-[3.3rem] font-light leading-[0.91] tracking-[-0.04em] sm:text-5xl md:text-6xl lg:text-[5.4rem]">
 
-              Your Hotel Deserves
+              {finalCta?.headingLineOne ||
+                "Your Hotel Deserves"}
+
               <br />
 
               <span className="text-[#d8b887]">
-                a Bigger Story.
+                {finalCta?.headingHighlight ||
+                  "a Bigger Story."}
               </span>
 
             </h2>
-
 
             {/* LINE */}
 
             <div className="mt-7 h-px w-12 bg-[#d8b887]" />
 
-
             {/* DESCRIPTION */}
 
             <p className="mt-7 max-w-[520px] text-sm leading-7 text-[#f7f3e8]/75 sm:text-base">
-
-              Whether you&apos;re a boutique stay or a luxury resort, Raahii
-              Digital is here to help you grow — with strategy, creativity
-              and a deep understanding of hospitality.
-
+              {finalCta?.description ||
+                "Whether you're a boutique stay or a luxury resort, Raahii Digital is here to help you grow — with strategy, creativity and a deep understanding of hospitality."}
             </p>
-
 
             {/* BUTTONS */}
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
 
-              <a
-                href="https://forms.gle/Rbb86sVxxU2fuetC7"
-                target="_blank"
-                rel="noopener noreferrer"
+              <SmartLink
+                link={
+                  finalCta?.primaryButton || {
+                    label: "Book a Free Consultation",
+                    url:
+                      "https://forms.gle/Rbb86sVxxU2fuetC7",
+                    openInNewTab: true,
+                  }
+                }
                 className="
                   group
                   inline-flex
@@ -552,16 +723,22 @@ export default function ServicesPage() {
                   hover:shadow-xl
                 "
               >
-                Book a Free Consultation
+                {finalCta?.primaryButton?.label ||
+                  "Book a Free Consultation"}
 
                 <span className="text-base transition-transform duration-300 group-hover:translate-x-1">
                   →
                 </span>
-              </a>
+              </SmartLink>
 
-
-              <a
-                href="/"
+              <SmartLink
+                link={
+                  finalCta?.secondaryButton || {
+                    label: "View Our Work",
+                    url: "/experience",
+                    openInNewTab: false,
+                  }
+                }
                 className="
                   inline-flex
                   h-13
@@ -579,30 +756,38 @@ export default function ServicesPage() {
                   hover:text-[#17352d]
                 "
               >
-                View Our Work
-              </a>
+                {finalCta?.secondaryButton?.label ||
+                  "View Our Work"}
+              </SmartLink>
 
             </div>
 
           </div>
-
 
           {/* RIGHT JOURNEY LABEL */}
 
           <div className="absolute bottom-10 right-6 hidden border-l border-[#f7f3e8]/40 pl-5 md:block lg:right-16">
 
             <p className="text-[8px] uppercase leading-6 tracking-[0.35em] text-[#f7f3e8]/70">
-              Get The Guest
-              <br />
-              Serve The Guest
-              <br />
-              Build The Brand
+
+              {journeyLabels.map(
+                (label, index) => (
+                  <span key={`${label}-${index}`}>
+                    {label}
+
+                    {index !==
+                      journeyLabels.length - 1 && (
+                      <br />
+                    )}
+                  </span>
+                )
+              )}
+
             </p>
 
           </div>
 
         </div>
-
       </section>
 
     </main>

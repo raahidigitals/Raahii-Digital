@@ -1,14 +1,24 @@
 import Link from "next/link";
 
+type FooterLink = {
+  label?: string;
+  href?: string;
+  openInNewTab?: boolean;
+};
+
 type FooterProps = {
   settings?: {
     brandName?: string;
     tagline?: string;
 
-    navigation?: {
-      label?: string;
-      href?: string;
-    }[];
+    logo?: {
+      asset?: {
+        _ref?: string;
+        _type?: string;
+      };
+    };
+
+    navigation?: FooterLink[];
 
     primaryCta?: {
       label?: string;
@@ -27,21 +37,152 @@ type FooterProps = {
 
     footer?: {
       statement?: string;
+      description?: string;
       location?: string;
+
+      exploreLinks?: FooterLink[];
+
+      connectLinks?: FooterLink[];
+
+      newsletter?: {
+        enabled?: boolean;
+        heading?: string;
+        description?: string;
+        placeholder?: string;
+        consentText?: string;
+      };
+
+      legalLinks?: FooterLink[];
+
       copyright?: string;
     };
   } | null;
 };
 
+const fallbackExploreLinks: FooterLink[] = [
+  {
+    label: "Philosophy",
+    href: "/#philosophy",
+  },
+  {
+    label: "Journey",
+    href: "/#journey",
+  },
+  {
+    label: "What We Do",
+    href: "/services",
+  },
+  {
+    label: "About",
+    href: "/about",
+  },
+];
+
+const fallbackLegalLinks: FooterLink[] = [
+  {
+    label: "Privacy Policy",
+    href: "/privacy",
+  },
+  {
+    label: "Terms",
+    href: "/terms",
+  },
+  {
+    label: "Sitemap",
+    href: "/sitemap.xml",
+  },
+];
+
+function isExternalLink(href: string) {
+  return (
+    href.startsWith("http://") ||
+    href.startsWith("https://") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:")
+  );
+}
+
+function cleanWhatsAppNumber(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) return "";
+
+  // If a complete WhatsApp URL is already stored in Sanity,
+  // use it directly.
+  if (
+    trimmed.startsWith("https://wa.me/") ||
+    trimmed.startsWith("http://wa.me/")
+  ) {
+    return trimmed;
+  }
+
+  // Otherwise convert a phone number into a WhatsApp URL.
+  const number = trimmed.replace(/\D/g, "");
+
+  if (!number) return "";
+
+  return `https://wa.me/${number}`;
+}
+
+function FooterLinkItem({
+  link,
+  className = "",
+}: {
+  link: FooterLink;
+  className?: string;
+}) {
+  if (!link.label || !link.href) {
+    return null;
+  }
+
+  const external = isExternalLink(link.href);
+
+  if (external) {
+    return (
+      <a
+        href={link.href}
+        target={link.openInNewTab === false ? undefined : "_blank"}
+        rel={
+          link.openInNewTab === false
+            ? undefined
+            : "noopener noreferrer"
+        }
+        className={className}
+      >
+        {link.label}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={link.href} className={className}>
+      {link.label}
+    </Link>
+  );
+}
+
 export default function Footer({ settings }: FooterProps) {
-  const brandName = settings?.brandName || "Raahii Digital";
+  // =====================================================
+  // BRAND
+  // =====================================================
+
+  const brandName =
+    settings?.brandName || "Raahii Digital";
 
   const tagline =
     settings?.tagline || "Hospitality Growth Partner";
 
+  // =====================================================
+  // FOOTER CONTENT
+  // =====================================================
+
   const footerStatement =
     settings?.footer?.statement ||
     "Meaningful travel builds a kinder, more connected world.";
+
+  const footerDescription =
+    settings?.footer?.description ||
+    "We help hospitality brands find their story, connect with the right guests, and grow with meaning.";
 
   const footerLocation =
     settings?.footer?.location ||
@@ -51,63 +192,140 @@ export default function Footer({ settings }: FooterProps) {
     settings?.footer?.copyright ||
     "Raahii Digital. All rights reserved.";
 
-  const instagram =
-    settings?.contact?.instagram || "#";
+  // =====================================================
+  // EXPLORE
+  // =====================================================
 
-  const linkedin =
-    settings?.contact?.linkedin || "#";
+  const exploreLinks =
+    settings?.footer?.exploreLinks &&
+    settings.footer.exploreLinks.length > 0
+      ? settings.footer.exploreLinks
+      : fallbackExploreLinks;
 
-  const youtube =
-    settings?.contact?.youtube || "#";
+  // =====================================================
+  // CONTACT
+  // =====================================================
 
   const hotelEmail =
-    settings?.contact?.hotelEmail || "";
+    settings?.contact?.hotelEmail?.trim() || "";
 
   const guestEmail =
-    settings?.contact?.guestEmail || "";
+    settings?.contact?.guestEmail?.trim() || "";
 
   const whatsapp =
-    settings?.contact?.whatsapp || "";
+    settings?.contact?.whatsapp?.trim() || "";
 
-  const primaryCtaUrl =
-    settings?.primaryCta?.url ||
-    "https://forms.gle/Rbb86sVxxU2fuetC7";
+  const instagram =
+    settings?.contact?.instagram?.trim() || "";
+
+  const linkedin =
+    settings?.contact?.linkedin?.trim() || "";
+
+  const youtube =
+    settings?.contact?.youtube?.trim() || "";
+
+  // =====================================================
+  // CONNECT
+  // =====================================================
 
   /*
-   * These remain hardcoded for now because
-   * Site Settings schema doesn't have dedicated
-   * Explore / Legal link fields yet.
+   * We use Sanity connectLinks first.
+   * Social/contact details from Site Settings are then added
+   * only if they are not already present.
    */
-  const exploreLinks = [
-    { label: "Philosophy", href: "/#philosophy" },
-    { label: "Journey", href: "/#journey" },
-    { label: "What We Do", href: "/services" },
-    { label: "About", href: "/about" },
+
+  const sanityConnectLinks =
+    settings?.footer?.connectLinks || [];
+
+  const connectLinks: FooterLink[] = [
+    ...sanityConnectLinks,
   ];
 
-  const connectLinks = [
-    {
-      label: "Start a Journey",
-      href: primaryCtaUrl,
-    },
-    {
+  const hasConnectLabel = (label: string) =>
+    connectLinks.some(
+      (link) =>
+        link.label?.toLowerCase() === label.toLowerCase()
+    );
+
+  if (instagram && !hasConnectLabel("Instagram")) {
+    connectLinks.push({
       label: "Instagram",
       href: instagram,
-    },
-    {
+      openInNewTab: true,
+    });
+  }
+
+  if (linkedin && !hasConnectLabel("LinkedIn")) {
+    connectLinks.push({
       label: "LinkedIn",
       href: linkedin,
-    },
-  ];
+      openInNewTab: true,
+    });
+  }
 
-  const isExternal = (href: string) =>
-    href.startsWith("http://") ||
-    href.startsWith("https://");
+  if (youtube && !hasConnectLabel("YouTube")) {
+    connectLinks.push({
+      label: "YouTube",
+      href: youtube,
+      openInNewTab: true,
+    });
+  }
+
+  // =====================================================
+  // LEGAL
+  // =====================================================
+
+  const legalLinks =
+    settings?.footer?.legalLinks &&
+    settings.footer.legalLinks.length > 0
+      ? settings.footer.legalLinks
+      : fallbackLegalLinks;
+
+  // =====================================================
+  // NEWSLETTER
+  // =====================================================
+
+  const newsletter =
+    settings?.footer?.newsletter;
+
+  const newsletterEnabled =
+    newsletter?.enabled ?? true;
+
+  const newsletterHeading =
+    newsletter?.heading ||
+    "Stay in the Journey";
+
+  const newsletterDescription =
+    newsletter?.description ||
+    "Thoughts, stories and ideas for a more meaningful tomorrow.";
+
+  const newsletterPlaceholder =
+    newsletter?.placeholder ||
+    "Your email address";
+
+  const newsletterConsent =
+    newsletter?.consentText ||
+    "I agree to receive updates from Raahii";
+
+  // =====================================================
+  // WHATSAPP
+  // =====================================================
+
+  const whatsappUrl = whatsapp
+    ? cleanWhatsAppNumber(whatsapp)
+    : "";
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <footer className="relative overflow-hidden bg-[#101311] text-[#f7f3e8]">
 
-      {/* BACKGROUND IMAGE */}
+      {/* =================================================
+          BACKGROUND
+      ================================================= */}
+
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
@@ -115,16 +333,24 @@ export default function Footer({ settings }: FooterProps) {
         }}
       />
 
-      {/* DARK OVERLAY */}
       <div className="absolute inset-0 bg-[#080b09]/80" />
 
-      {/* CONTENT */}
+      {/* =================================================
+          CONTENT
+      ================================================= */}
+
       <div className="relative z-10 mx-auto max-w-[1500px] px-6 py-16 md:px-10 md:py-20 lg:px-16 lg:py-24">
 
-        {/* TOP CONTENT */}
+        {/* =================================================
+            TOP CONTENT
+        ================================================= */}
+
         <div className="grid gap-14 lg:grid-cols-[1.5fr_0.65fr_0.65fr_1.2fr]">
 
-          {/* BRAND */}
+          {/* =================================================
+              BRAND
+          ================================================= */}
+
           <div>
 
             <h2 className="font-serif text-6xl font-light tracking-tight md:text-7xl lg:text-8xl">
@@ -135,29 +361,26 @@ export default function Footer({ settings }: FooterProps) {
               {tagline}
             </p>
 
-            {/* SMALL LINE */}
             <div className="mt-8 h-px w-11 bg-[#d8b887]" />
 
-            {/* STATEMENT */}
             <h3 className="mt-7 max-w-xl font-serif text-2xl font-light leading-tight md:text-3xl lg:text-[32px]">
               {footerStatement}
             </h3>
 
-            {/* DESCRIPTION */}
             <p className="mt-6 max-w-lg text-sm leading-7 text-[#f7f3e8]/70 md:text-base">
-              We help hospitality brands find their story,
-              connect with the right guests, and grow with meaning.
+              {footerDescription}
             </p>
 
-            {/* LOCATION */}
             <p className="mt-6 text-[10px] uppercase tracking-[0.25em] text-[#d8b887]/70">
               {footerLocation}
             </p>
 
           </div>
 
+          {/* =================================================
+              EXPLORE
+          ================================================= */}
 
-          {/* EXPLORE */}
           <div>
 
             <p className="text-[11px] uppercase tracking-[0.3em] text-[#f7f3e8]/50">
@@ -166,22 +389,22 @@ export default function Footer({ settings }: FooterProps) {
 
             <div className="mt-7 flex flex-col gap-5 text-sm">
 
-              {exploreLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
+              {exploreLinks.map((link, index) => (
+                <FooterLinkItem
+                  key={`${link.label || "explore"}-${index}`}
+                  link={link}
                   className="transition-colors duration-300 hover:text-[#d8b887]"
-                >
-                  {link.label}
-                </Link>
+                />
               ))}
 
             </div>
 
           </div>
 
+          {/* =================================================
+              CONNECT
+          ================================================= */}
 
-          {/* CONNECT */}
           <div className="lg:border-l lg:border-[#f7f3e8]/15 lg:pl-10">
 
             <p className="text-[11px] uppercase tracking-[0.3em] text-[#f7f3e8]/50">
@@ -190,36 +413,18 @@ export default function Footer({ settings }: FooterProps) {
 
             <div className="mt-7 flex flex-col gap-5 text-sm">
 
-              {connectLinks.map((link) => {
-                const external =
-                  isExternal(link.href);
+              {/* SANITY CONNECT LINKS */}
 
-                if (external) {
-                  return (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="transition-colors duration-300 hover:text-[#d8b887]"
-                    >
-                      {link.label}
-                    </a>
-                  );
-                }
+              {connectLinks.map((link, index) => (
+                <FooterLinkItem
+                  key={`${link.label || "connect"}-${index}`}
+                  link={link}
+                  className="transition-colors duration-300 hover:text-[#d8b887]"
+                />
+              ))}
 
-                return (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className="transition-colors duration-300 hover:text-[#d8b887]"
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
+              {/* HOTEL EMAIL */}
 
-              {/* EMAIL */}
               {hotelEmail && (
                 <a
                   href={`mailto:${hotelEmail}`}
@@ -230,9 +435,10 @@ export default function Footer({ settings }: FooterProps) {
               )}
 
               {/* WHATSAPP */}
-              {whatsapp && (
+
+              {whatsappUrl && (
                 <a
-                  href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`}
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition-colors duration-300 hover:text-[#d8b887]"
@@ -245,62 +451,68 @@ export default function Footer({ settings }: FooterProps) {
 
           </div>
 
+          {/* =================================================
+              NEWSLETTER
+          ================================================= */}
 
-          {/* NEWSLETTER */}
-          <div className="lg:border-l lg:border-[#f7f3e8]/15 lg:pl-10">
+          {newsletterEnabled && (
+            <div className="lg:border-l lg:border-[#f7f3e8]/15 lg:pl-10">
 
-            <p className="text-[11px] uppercase tracking-[0.3em] text-[#f7f3e8]/50">
-              Stay in the Journey
-            </p>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-[#f7f3e8]/50">
+                {newsletterHeading}
+              </p>
 
-            <p className="mt-6 max-w-sm font-serif text-xl leading-relaxed text-[#f7f3e8]/90">
-              Thoughts, stories and ideas for a more meaningful tomorrow.
-            </p>
+              <p className="mt-6 max-w-sm font-serif text-xl leading-relaxed text-[#f7f3e8]/90">
+                {newsletterDescription}
+              </p>
 
-            {/* EMAIL */}
-            <div className="mt-7 flex h-14 items-center rounded-full border border-[#f7f3e8]/20 bg-[#f7f3e8]/5 p-1">
+              {/* NEWSLETTER UI */}
 
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="min-w-0 flex-1 bg-transparent px-5 text-sm text-[#f7f3e8] outline-none placeholder:text-[#f7f3e8]/40"
-              />
+              <div className="mt-7 flex h-14 items-center rounded-full border border-[#f7f3e8]/20 bg-[#f7f3e8]/5 p-1">
 
-              <button
-                type="button"
-                aria-label="Subscribe"
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#eadbc3] text-[#17352d] transition-transform duration-300 hover:scale-105"
-              >
-                <span className="text-xl">
-                  →
+                <input
+                  type="email"
+                  placeholder={newsletterPlaceholder}
+                  aria-label={newsletterPlaceholder}
+                  className="min-w-0 flex-1 bg-transparent px-5 text-sm text-[#f7f3e8] outline-none placeholder:text-[#f7f3e8]/40"
+                />
+
+                <button
+                  type="button"
+                  aria-label="Subscribe"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#eadbc3] text-[#17352d] transition-transform duration-300 hover:scale-105"
+                >
+                  <span className="text-xl">
+                    →
+                  </span>
+                </button>
+
+              </div>
+
+              <label className="mt-5 flex cursor-pointer items-start gap-3 text-xs leading-5 text-[#f7f3e8]/60">
+
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#d8b887]"
+                />
+
+                <span>
+                  {newsletterConsent}
                 </span>
-              </button>
+
+              </label>
 
             </div>
-
-            {/* CONSENT */}
-            <label className="mt-5 flex cursor-pointer items-start gap-3 text-xs leading-5 text-[#f7f3e8]/60">
-
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 shrink-0 accent-[#d8b887]"
-              />
-
-              <span>
-                I agree to receive updates from Raahii
-              </span>
-
-            </label>
-
-          </div>
+          )}
 
         </div>
 
+        {/* =================================================
+            DECORATIVE JOURNEY LINE
+        ================================================= */}
 
-        {/* DECORATIVE JOURNEY LINE */}
         <div className="relative mt-20 hidden h-32 md:block">
 
-          {/* CURVE */}
           <svg
             viewBox="0 0 1400 120"
             preserveAspectRatio="none"
@@ -309,18 +521,18 @@ export default function Footer({ settings }: FooterProps) {
             aria-hidden="true"
           >
             <path
-              d="M-20 65
-                 C140 65 180 92 330 82
-                 C480 72 510 22 650 35
-                 C790 48 820 92 980 78
-                 C1130 65 1210 35 1420 52"
+              d="
+                M-20 65
+                C140 65 180 92 330 82
+                C480 72 510 22 650 35
+                C790 48 820 92 980 78
+                C1130 65 1210 35 1420 52
+              "
               stroke="rgba(216,184,135,0.38)"
               strokeWidth="1.2"
             />
           </svg>
 
-
-          {/* LEFT LABELS */}
           <div className="absolute bottom-15 left-[7%] flex gap-9">
 
             <span className="text-[9px] uppercase tracking-[0.35em] text-[#d8b887]/70">
@@ -337,14 +549,10 @@ export default function Footer({ settings }: FooterProps) {
 
           </div>
 
-
-          {/* CENTER LABEL */}
           <p className="absolute bottom-2 left-[35%] text-[9px] uppercase tracking-[0.35em] text-[#d8b887]/70">
             A Brighter Tomorrow
           </p>
 
-
-          {/* RIGHT MESSAGE */}
           <div className="absolute right-0 top-0 flex items-center gap-5">
 
             <div className="text-right">
@@ -365,15 +573,20 @@ export default function Footer({ settings }: FooterProps) {
 
         </div>
 
+        {/* =================================================
+            DIVIDER
+        ================================================= */}
 
-        {/* DIVIDER */}
         <div className="mt-10 h-px bg-[#f7f3e8]/15 md:mt-6" />
 
+        {/* =================================================
+            BOTTOM
+        ================================================= */}
 
-        {/* BOTTOM */}
         <div className="flex flex-col gap-5 pt-7 text-xs text-[#f7f3e8]/45 md:flex-row md:items-center md:justify-between">
 
           <div>
+
             <p>
               © {new Date().getFullYear()} {copyright}
             </p>
@@ -386,30 +599,18 @@ export default function Footer({ settings }: FooterProps) {
                 {guestEmail}
               </a>
             )}
+
           </div>
 
-          <div className="flex gap-7">
+          <div className="flex flex-wrap gap-7">
 
-            <a
-              href="#"
-              className="transition-colors hover:text-[#f7f3e8]"
-            >
-              Privacy Policy
-            </a>
-
-            <a
-              href="#"
-              className="transition-colors hover:text-[#f7f3e8]"
-            >
-              Terms
-            </a>
-
-            <a
-              href="/sitemap.xml"
-              className="transition-colors hover:text-[#f7f3e8]"
-            >
-              Sitemap
-            </a>
+            {legalLinks.map((link, index) => (
+              <FooterLinkItem
+                key={`${link.label || "legal"}-${index}`}
+                link={link}
+                className="transition-colors hover:text-[#f7f3e8]"
+              />
+            ))}
 
           </div>
 
