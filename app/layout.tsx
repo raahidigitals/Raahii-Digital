@@ -53,7 +53,7 @@ export const metadata: Metadata = {
       "Helping hospitality brands get discovered, chosen and remembered.",
   },
 
-  metadataBase: new URL("http://www.raahiidigital.com/"),
+  metadataBase: new URL("https://www.raahiidigital.com/"),
 };
 
 export default async function RootLayout({
@@ -78,48 +78,52 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-  <Script
-    id="google-tag-manager"
-    strategy="afterInteractive"
-    dangerouslySetInnerHTML={{
-      __html: `
-        (function(w,d,s,l,i){
-          w[l]=w[l]||[];
-          w[l].push({
-            'gtm.start': new Date().getTime(),
-            event:'gtm.js'
-          });
-          var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),
-              dl=l!='dataLayer'?'&l='+l:'';
-          j.async=true;
-          j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-          f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer','GTM-NWD575FG');
-      `,
-    }}
-  />
-</head>
+        {/* Google Tag Manager */}
+        <Script
+          id="google-tag-manager"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,l,i){
+                w[l]=w[l]||[];
+                w[l].push({
+                  'gtm.start': new Date().getTime(),
+                  event:'gtm.js'
+                });
+                var f=d.getElementsByTagName(s)[0],
+                    j=d.createElement(s),
+                    dl=l!='dataLayer'?'&l='+l:'';
+                j.async=true;
+                j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+                f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','GTM-WT4ZB3V3');
+            `,
+          }}
+        />
+        {/* End Google Tag Manager */}
+      </head>
 
       <body className="min-h-screen antialiased">
         {/* Google Tag Manager (noscript) */}
         <noscript>
-  <iframe
-    src="https://www.googletagmanager.com/ns.html?id=GTM-NWD575FG"
-    height="0"
-    width="0"
-    style={{
-      display: "none",
-      visibility: "hidden",
-    }}
-  />
-</noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-WT4ZB3V3"
+            height="0"
+            width="0"
+            style={{
+              display: "none",
+              visibility: "hidden",
+            }}
+          />
+        </noscript>
+        {/* End Google Tag Manager (noscript) */}
 
         <Navbar settings={siteSettings} />
 
         {children}
 
         <Footer settings={siteSettings} />
+
         <FloatingCTA settings={siteSettings?.floatingCTA} />
       </body>
     </html>
